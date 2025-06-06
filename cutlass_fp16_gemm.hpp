@@ -50,7 +50,7 @@
 
 using namespace cute;
 
-void cutlass_bf16_gemm(int M, int N, int K, half_t const* ptrA, half_t const* ptrB, float* ptrC, float const* ptrBias) {
+void cutlass_fp16_gemm(int M, int N, int K, half_t const* ptrA, half_t const* ptrB, float* ptrC, float const* ptrBias) {
 
 
   // A matrix configuration

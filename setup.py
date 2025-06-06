@@ -11,7 +11,7 @@ _cutlass_include_dirs = ["tools/util/include","include"]
 cutlass_include_dirs = [os.path.join(cutlass_dir, d) for d in _cutlass_include_dirs]
 
 # Set additional flags needed for compilation here
-nvcc_flags=["-O3","-DNDEBUG","-std=c++17"]
+nvcc_flags=["-O3","-DNDEBUG","-std=c++17", "-DCUDA_PTX_FP8_CVT_ENABLED"]
 ld_flags=[]
 
 # For the hopper example, we need to specify the architecture. It also needs to be linked to CUDA library.
@@ -23,7 +23,8 @@ setup(
     ext_modules=[
         CUDAExtension(
                 name="cutlass_gemm",  
-                sources=["cutlass_gemm.cu"],
+                # sources=["cutlass_gemm.cu", "bf16_to_fp4.cu", "bf16_to_fp4_binding.cu"],
+                sources=["bf16_to_fp4.cu", "bf16_to_fp4_binding.cu"],
                 include_dirs=cutlass_include_dirs,
                 extra_compile_args={'nvcc': nvcc_flags},
                 libraries=ld_flags)
