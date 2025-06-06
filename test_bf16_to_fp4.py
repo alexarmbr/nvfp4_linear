@@ -9,37 +9,39 @@ import numpy as np
 
 from cutlass_gemm import bf16_to_fp4
 
-# M, N = 8192 * 2, 8192 * 2
 
-# def benchmark_copy(copy_func):
-#     for i in range(5):
-#         copy_func()
-#     start_event = torch.cuda.Event(enable_timing=True)
-#     end_event = torch.cuda.Event(enable_timing=True)
-#     start_event.record()
-#     for i in range(20):
-#         copy_func()
-#     end_event.record()
-#     torch.cuda.synchronize()
-#     elapsed_ms = start_event.elapsed_time(end_event) / 20
-#     gibytes_moved = (M * N * 2 * 2) / (1024**3)
-#     print(f"effective bandwidth: {gibytes_moved / (elapsed_ms / 1e3)} GiB/s")
+def compute_scales(input_tensor):
+    scale_vector_length = 16
+    assert input_tensor.shape[1] % scale_vector_length == 0
+    input_tensor = input_tensor.view(input_tensor.shape[0], -1, scale_vector_length)
+    max_values = torch.max(input_tensor, dim=2).values
+    max_values = max_values.to(torch.float32)
+    max_values = max_values / 6.0
+    max_values = torch.clamp(max_values, max=448.0)
+    max_values = max_values.to(torch.float8_e4m3fn)
+    return max_values
 
 
-# input_tensor = torch.randn(M, N, dtype=torch.bfloat16, device=torch.device('cuda'))
+# TODO verify with pencil and paper that that the quantization of 0,1,....15 is correct
+# TODO scale factors should not be negative
+small_input = torch.ones(8, 256, dtype=torch.bfloat16, device=torch.device('cuda')) * 6.0
+for i in range(32):
+    small_input[0, i] = i
 
-# my_copy_func = lambda: bf16_to_fp4(input_tensor)
-# torch_copy_func = lambda: input_tensor.clone()
-
-# print("bf16_to_fp4")
-# benchmark_copy(my_copy_func)
-# print("torch.clone")
-# benchmark_copy(torch_copy_func)
+for i in range(32):
+    small_input[1, i] = (32 - i) * -1
 
 
-small_input = torch.randn(8, 256, dtype=torch.bfloat16, device=torch.device('cuda'))
-out, scale = bf16_to_fp4(small_input)
+scale = bf16_to_fp4(small_input)
+
+scale_gt = compute_scales(small_input)
+scale = scale.to(torch.float32)
+scale_gt = scale_gt.to(torch.float32)
+assert (scale == scale_gt).all()
+
 print(scale)
+
+
 
 
 
