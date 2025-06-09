@@ -80,8 +80,8 @@ void cutlass_fp4_gemm(int M, int N, int K, DataType const* ptrA, DataType const*
     using OperatorClass       = cutlass::arch::OpClassBlockScaledTensorOp;      // Operator class tag
 
     // Kernel Perf config
-    using MmaTileShape        = Shape<_256,_256,_256>;                          // MMA's tile size
-    using ClusterShape        = Shape<_4,_4,_1>;                                // Shape of the threadblocks in a cluster
+    using MmaTileShape        = Shape<_256,_192,_256>;                          // MMA's tile size
+    using ClusterShape        = Shape<_2,_1,_1>;                                // Shape of the threadblocks in a cluster
 
     using CollectiveEpilogue = typename cutlass::epilogue::collective::CollectiveBuilder<
         ArchTag, OperatorClass,                      
@@ -99,7 +99,7 @@ void cutlass_fp4_gemm(int M, int N, int K, DataType const* ptrA, DataType const*
         ElementB, LayoutBTag, AlignmentB,
         ElementAccumulator,
         MmaTileShape, ClusterShape,
-        cutlass::gemm::collective::StageCountAutoCarveout<static_cast<int>(sizeof(typename CollectiveEpilogue::SharedStorage))>,
+        cutlass::gemm::collective::StageCount<5>,
         cutlass::gemm::collective::KernelScheduleAuto                             // Kernel schedule policy. Auto or using targeted scheduling policy
     >::CollectiveOp;
 
