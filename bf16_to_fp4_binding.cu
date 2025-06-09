@@ -71,15 +71,15 @@ torch::Tensor bf16_to_fp4_wrapper(torch::Tensor input) {
                 rows, data_cols);
     
     // Allocate CPU memory to copy GPU results back for printing
-    cutlass::float_e2m1_t* data_out_cpu = (cutlass::float_e2m1_t*)malloc(data_out_bytes);
+    // cutlass::float_e2m1_t* data_out_cpu = (cutlass::float_e2m1_t*)malloc(data_out_bytes);
     
     // Copy GPU memory to CPU memory
-    CUDA_CHECK_MALLOC(cudaMemcpy(data_out_cpu, data_out, data_out_bytes, cudaMemcpyDeviceToHost));
+    // CUDA_CHECK_MALLOC(cudaMemcpy(data_out_cpu, data_out, data_out_bytes, cudaMemcpyDeviceToHost));
     
     // print the top left 16x16 of data_out using CPU memory
     // Note: each byte contains 2 FP4 values (4 bits each)
-    uint8_t* raw_bytes = reinterpret_cast<uint8_t*>(data_out_cpu);
-    int byte_stride = data_cols / 2;
+    // uint8_t* raw_bytes = reinterpret_cast<uint8_t*>(data_out_cpu);
+    // int byte_stride = data_cols / 2;
     
     // for (int j = 0; j < 2; j++) {
     //     for (int i = 0; i < 16; i++) {
@@ -94,7 +94,7 @@ torch::Tensor bf16_to_fp4_wrapper(torch::Tensor input) {
     // }
 
     // Free both GPU and CPU memory
-    free(data_out_cpu);
+    // free(data_out_cpu);
     cudaFree(data_out);
     
     return scale_out;

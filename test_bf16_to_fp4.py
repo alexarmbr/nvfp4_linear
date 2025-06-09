@@ -14,7 +14,7 @@ def compute_scales(input_tensor):
     scale_vector_length = 16
     assert input_tensor.shape[1] % scale_vector_length == 0
     input_tensor = input_tensor.view(input_tensor.shape[0], -1, scale_vector_length)
-    max_values = torch.max(input_tensor, dim=2).values
+    max_values = torch.max(torch.abs(input_tensor), dim=2).values
     max_values = max_values.to(torch.float32)
     max_values = max_values / 6.0
     max_values = torch.clamp(max_values, max=448.0)

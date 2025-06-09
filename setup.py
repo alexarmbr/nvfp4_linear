@@ -11,7 +11,7 @@ _cutlass_include_dirs = ["tools/util/include","include"]
 cutlass_include_dirs = [os.path.join(cutlass_dir, d) for d in _cutlass_include_dirs]
 
 # Set additional flags needed for compilation here
-nvcc_flags=["-O3","-DNDEBUG","-std=c++17", "-DCUDA_PTX_FP8_CVT_ENABLED"]
+nvcc_flags=["-O3","-DNDEBUG","-std=c++17", "-DCUDA_PTX_FP8_CVT_ENABLED", "-lineinfo"]
 ld_flags=[]
 
 # For the hopper example, we need to specify the architecture. It also needs to be linked to CUDA library.

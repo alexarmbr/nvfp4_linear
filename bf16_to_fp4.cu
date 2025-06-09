@@ -55,12 +55,12 @@ ValShape val_shape
     // }
 
     // each thread computes the max of each of the 2 rows
-    cutlass::bfloat16_t row0_max_ = threadTileReg(make_coord(0, 0));
-    cutlass::bfloat16_t row1_max_ = threadTileReg(make_coord(1, 0));
+    cutlass::bfloat16_t row0_max_ = abs(threadTileReg(make_coord(0, 0)));
+    cutlass::bfloat16_t row1_max_ = abs(threadTileReg(make_coord(1, 0)));
     #pragma unroll
         for (int i = 1; i < 8; i++){
-            row0_max_ = cutlass::fast_max(row0_max_, threadTileReg(make_coord(0, i)));
-            row1_max_ = cutlass::fast_max(row1_max_, threadTileReg(make_coord(1, i)));
+            row0_max_ = cutlass::fast_max(row0_max_, abs(threadTileReg(make_coord(0, i))));
+            row1_max_ = cutlass::fast_max(row1_max_, abs(threadTileReg(make_coord(1, i))));
         }
     
     float row0_max = static_cast<float>(row0_max_);
@@ -119,8 +119,12 @@ ValShape val_shape
     //     printf("threadIdx.x: %d, row0_scale: %f, row1_scale: %f, recieved_row0_scale: %f, recieved_row1_scale: %f\n", threadIdx.x, row0_scale, row1_scale, recieved_row0_scale, recieved_row1_scale);
     // }
 
+    float row_0_scale_reciprocal = 1.0f / row0_scale;
+    float row_1_scale_reciprocal = 1.0f / row1_scale;
+
     uint32_t packed_row0 = 0;
     uint32_t packed_row1 = 0;
+    
     #pragma unroll
         for (int i = 0; i < 8; i++){
             float x = __bfloat162float(threadTileReg(make_coord(0, i)).to_nv_bfloat16());
@@ -128,8 +132,8 @@ ValShape val_shape
 
             // divide by scale factor to map values into nvfp4 range
             // the scale factor is max(x_0, x_1, ..., x_16) / MAX_NVFP4
-            x /= row0_scale;
-            y /= row1_scale;
+            x *= row_0_scale_reciprocal;
+            y *= row_1_scale_reciprocal;
 
             float2 value = make_float2(x, y);
             
